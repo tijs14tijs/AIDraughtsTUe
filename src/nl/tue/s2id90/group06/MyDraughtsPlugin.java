@@ -3,7 +3,7 @@
  * and open the template in the editor.
  */
 package nl.tue.s2id90.group06;
-
+//test
 import net.xeoh.plugins.base.annotations.PluginImplementation;
 import nl.tue.s2id90.draughts.DraughtsPlayerProvider;
 import nl.tue.s2id90.draughts.DraughtsPlugin;
