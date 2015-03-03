@@ -12,36 +12,61 @@ import org10x10.dam.game.Move;
 public class AlphaBetaPlayer extends DraughtsPlayer {
 
     private int INF = Integer.MAX_VALUE;
-    // Our standard search depth (for now)
-    private int MAXDEPTH = 6;
+    // Warning: bestMove may be used with concurrency, use synchonized methods below to access this variable.
     private Move bestMove;
-    private boolean isWhite;
-
+    private boolean stopped;
+    private HeuristicDeterminator heuristics;
+    
     @Override
     public Move getMove(DraughtsState s) {
-        isWhite = s.isWhiteToMove();
-        // Iterative deepening
-        for (MAXDEPTH = 5; MAXDEPTH < 7; MAXDEPTH += 1) {
-            int a = Alpha(s, -INF, INF, 0);
-            System.out.println("depth:" + MAXDEPTH + ", a:" + a);
+        stopped = false;
+        // Initialize heuristics calculator or just clear its cache if it already exists.
+        if(heuristics == null) {
+            heuristics = new HeuristicDeterminator(s);
+        }else{
+            heuristics.clearCache();
         }
-        return bestMove;
+        
+        // Iterative deepening, stops immediately when stop() is called
+        try {
+            for (int maxdepth = 7; maxdepth < 30; maxdepth += 1) {
+                // Always start tree with alpha (heuristic adapts to this by being inverted when player is black).
+                int a = Alpha(s, -INF, INF, maxdepth, true);
+                System.out.println("depth:" + maxdepth + ", a:" + a);
+            }
+        // Just in case that we get an exception, we want to keep playing.
+        } catch(AIStoppedException e) {
+            System.out.println("depth search interrupted");
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+        
+        return this.bestMove;
     }
 
-    public int Alpha(DraughtsState s, int alpha, int beta, int depth) {
-        List<Move> children = s.getMoves();
+    // Maximizing fuction
+    // If initial, then this is the first (best) move to be calculated, this move will then be stored.
+    // (Calculating and storing the best move for every GameState as suggested in the assignment is inefficient, 
+    //  because you will only actually use the value of the first GameState.)
+    public int Alpha(DraughtsState s, int alpha, int beta, int depth, boolean initial) throws AIStoppedException {
+        if(stopped) throw new AIStoppedException();
+        
         // This node is a leaf
-        if(children.isEmpty() || depth == MAXDEPTH) {
-            return heuristicVal(s, depth);
+        List<Move> children = s.getMoves();
+        if(depth <= 0 || children.isEmpty()) {
+            return heuristics.calculateVal(s, depth);
         }
+        
+        // The best move of the future
+        Move futureBestMove = null;
         
         int v = -INF;
         for (Move move : children) {
             s.doMove(move);
-            int result = Beta(s, v, beta, depth + 1);
+            int result = Beta(s, v, beta, depth - 1);
             if (result > v) {
-                if (depth == 0) {
-                    bestMove = move;
+                if (initial) {
+                    futureBestMove = move;
                 }
                 v = result;
             }
@@ -50,28 +75,30 @@ public class AlphaBetaPlayer extends DraughtsPlayer {
             // If this condition holds then we can do pruning
             if (v >= beta) {
                 // break out of the for loop and return v.
-                return v;
+                break;
             }
         }
 
+        // Best move can be determined when we have looked at all children (except pruned onces).
+        if (initial) {
+            this.bestMove = futureBestMove;
+        }
         return v;
     }
 
-    public int Beta(DraughtsState s, int alpha, int beta, int depth) {
-        List<Move> children = s.getMoves();
+    // Minimizing function
+    public int Beta(DraughtsState s, int alpha, int beta, int depth) throws AIStoppedException {
         // This node is a leaf
-        if(children.isEmpty() || depth == MAXDEPTH) {
-            return heuristicVal(s, depth);
+        List<Move> children = s.getMoves();
+        if(depth <= 0 || children.isEmpty()) {
+            return heuristics.calculateVal(s, depth);
         }
         
         int v = INF;
         for (Move move : children) {
             s.doMove(move);
-            int result = Alpha(s, alpha, v, depth + 1);
+            int result = Alpha(s, alpha, v, depth - 1, false);
             if (result < v) {
-                if (depth == 0) {
-                    bestMove = move;
-                }
                 v = result;
             }
             s.undoMove(move);
@@ -79,7 +106,7 @@ public class AlphaBetaPlayer extends DraughtsPlayer {
             // If this condition holds then we can do pruning
             if (alpha >= v) {
                 // break out of the for loop and return v.
-                return v;
+                break;
             }
 
         }
@@ -87,30 +114,10 @@ public class AlphaBetaPlayer extends DraughtsPlayer {
         return v;
     }
 
-    public static final int WHITEPIECE = 1;
-    public static final int BLACKPIECE = 2;
-    public static final int WHITEKING = 3;
-    public static final int BLACKKING = 4;
-    
-    public int heuristicVal(DraughtsState s, int depth) {
-        // TODO count all pieces/types, opposite value if iswhite
-        int[] pieces = s.getPieces();
-
-        int h = 0;
-        for (int piece : pieces) {
-            h += ((piece == WHITEPIECE) ? 3 : 0) - ((piece == BLACKPIECE) ? 2 : 0) + 
-                    ((piece == WHITEKING) ? 8 : 0) - ((piece == BLACKKING) ? 5 : 0);
-        }
-
-        if (isWhite) {
-            return h;
-        } else {
-            return -h;
-        }
-    }
-
     @Override
     public void stop() {
-
+        this.stopped = true;
     }
+    
+    private static class AIStoppedException extends Exception {}
 }
