@@ -29,7 +29,7 @@ public class AlphaBetaPlayer extends DraughtsPlayer {
         try {
             for (int maxdepth = 7; maxdepth < 30; maxdepth += 1) {
                 // Always start tree with alpha (heuristic adapts to this by being inverted when player is black).
-                int a = Alpha(s, -INF, INF, maxdepth, true);
+                double a = Alpha(s, -INF, INF, maxdepth, true);
                 System.out.println("depth:" + maxdepth + ", a:" + a);
             }
         // Just in case that we get an exception, we want to keep playing.
@@ -46,7 +46,7 @@ public class AlphaBetaPlayer extends DraughtsPlayer {
     // If initial, then this is the first (best) move to be calculated, this move will then be stored.
     // (Calculating and storing the best move for every GameState as suggested in the assignment is inefficient, 
     //  because you will only actually use the value of the first GameState.)
-    public int Alpha(DraughtsState s, int alpha, int beta, int depth, boolean initial) throws AIStoppedException {
+    public double Alpha(DraughtsState s, double alpha, double beta, int depth, boolean initial) throws AIStoppedException {
         if(stopped) throw new AIStoppedException();
         
         // This node is a leaf
@@ -58,10 +58,10 @@ public class AlphaBetaPlayer extends DraughtsPlayer {
         // The best move of the future
         Move futureBestMove = null;
         
-        int v = -INF;
+        double v = -INF;
         for (Move move : children) {
             s.doMove(move);
-            int result = Beta(s, v, beta, depth - 1);
+            double result = Beta(s, v, beta, depth - 1);
             if (result > v) {
                 if (initial) {
                     futureBestMove = move;
@@ -85,17 +85,17 @@ public class AlphaBetaPlayer extends DraughtsPlayer {
     }
 
     // Minimizing function
-    public int Beta(DraughtsState s, int alpha, int beta, int depth) throws AIStoppedException {
+    public double Beta(DraughtsState s, double alpha, double beta, int depth) throws AIStoppedException {
         // This node is a leaf
         List<Move> children = s.getMoves();
         if(depth <= 0 || children.isEmpty()) {
             return heuristics.calculateVal(s, depth);
         }
         
-        int v = INF;
+        double v = INF;
         for (Move move : children) {
             s.doMove(move);
-            int result = Alpha(s, alpha, v, depth - 1, false);
+            double result = Alpha(s, alpha, v, depth - 1, false);
             if (result < v) {
                 v = result;
             }
