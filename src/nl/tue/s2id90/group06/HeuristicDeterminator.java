@@ -139,9 +139,7 @@ public class HeuristicDeterminator {
     
     // Determine the heuristic value for a certain state s
     public double calculateVal(DraughtsState s, int depth) {
-        int[] pieces = s.getPieces();
-        pieces[0] = depth; // Add depth to the first place of the array: the first place used to be 0 all the time.
-        
+        int[] pieces = s.getPieces();        
         
         // TIJS: Our heuristic is symmetric (our pieces are worth just as much as their pieces) so you do not need
         // a large if isWhite here. Just do it at the bottom.
