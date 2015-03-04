@@ -1,6 +1,7 @@
 package nl.tue.s2id90.group06;
 
 import java.util.List;
+import java.util.Random;
 import nl.tue.s2id90.draughts.DraughtsState;
 import nl.tue.s2id90.draughts.player.DraughtsPlayer;
 import org10x10.dam.game.Move;
@@ -19,6 +20,7 @@ public class AlphaBetaPlayer extends DraughtsPlayer {
     
     @Override
     public Move getMove(DraughtsState s) {
+        bestMove = null;
         stopped = false;
         // Initialize heuristics calculator or just clear its cache if it already exists.
         if(heuristics == null) {
@@ -27,7 +29,7 @@ public class AlphaBetaPlayer extends DraughtsPlayer {
         
         // Iterative deepening, stops immediately when stop() is called
         try {
-            for (int maxdepth = 4; maxdepth < 30; maxdepth += 1) {
+            for (int maxdepth = 7; maxdepth < 30; maxdepth += 1) {
                 // Always start tree with alpha (heuristic adapts to this by being inverted when player is black).
                 double a = Alpha(s, -INF, INF, maxdepth, true);
                 System.out.println("depth:" + maxdepth + ", a:" + a);
@@ -37,6 +39,15 @@ public class AlphaBetaPlayer extends DraughtsPlayer {
             System.out.println("depth search interrupted");
         } catch(Exception e) {
             e.printStackTrace();
+        }
+        
+        // We can not return null, so picking a random move would be our best shot in this case.
+        if(bestMove == null) {
+            Random r = new Random();
+            List<Move> moves = s.getMoves();
+            int i = r.nextInt(moves.size());
+            System.out.println("Random move was the best option...");
+            return moves.get(i);
         }
         
         return this.bestMove;
@@ -71,7 +82,7 @@ public class AlphaBetaPlayer extends DraughtsPlayer {
             s.undoMove(move);
 
             // If this condition holds then we can do pruning
-            if (v > beta) {
+            if (v >= beta) {
                 // break out of the for loop and return v.
                 break;
             }
@@ -102,10 +113,10 @@ public class AlphaBetaPlayer extends DraughtsPlayer {
             s.undoMove(move);
 
             // If this condition holds then we can do pruning
-//            if (alpha > v) {
-//                // break out of the for loop and return v.
-//                break;
-//            }
+            if (alpha >= v) {
+                // break out of the for loop and return v.
+                break;
+            }
 
         }
         
