@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package nl.tue.s2id90.group06;
 
 import java.util.Arrays;
@@ -18,7 +13,9 @@ public class HeuristicDeterminator {
     // If we have seen a state before in the tree, then we store its heuristic.
     private final HashMap<Integer, Integer> heuristicCache;
     private final boolean isWhite;
-
+    private int cacheErr = 0;
+    private int cacheGood = 0;
+            
     public HeuristicDeterminator(DraughtsState s) {
         isWhite = s.isWhiteToMove();
         heuristicCache = new HashMap();
@@ -41,9 +38,11 @@ public class HeuristicDeterminator {
         int h = 0;
         if(cacheResult == null) {
             // This is where the actual heuristic is calculated.
-            for (int piece : pieces) {
-                h += ((piece == WHITEPIECE) ? 3 : 0) - ((piece == BLACKPIECE) ? 2 : 0) + 
-                        ((piece == WHITEKING) ? 5 : 0) - ((piece == BLACKKING) ? 4 : 0);
+            for (int i = 1; i < pieces.length; i++) {
+                int piece = pieces[i];
+                
+                h += ((piece == WHITEPIECE) ? 2 : 0) - ((piece == BLACKPIECE) ? 1 : 0) + 
+                        ((piece == WHITEKING) ? 3 : 0) - ((piece == BLACKKING) ? 4 : 0);
             }
             // Store this value in our cache so that we do not have to calculate it every time.
             heuristicCache.put(hashcode, h);
