@@ -27,7 +27,7 @@ public class AlphaBetaPlayer extends DraughtsPlayer {
         
         // Iterative deepening, stops immediately when stop() is called
         try {
-            for (int maxdepth = 7; maxdepth < 30; maxdepth += 1) {
+            for (int maxdepth = 4; maxdepth < 30; maxdepth += 1) {
                 // Always start tree with alpha (heuristic adapts to this by being inverted when player is black).
                 double a = Alpha(s, -INF, INF, maxdepth, true);
                 System.out.println("depth:" + maxdepth + ", a:" + a);
@@ -71,7 +71,7 @@ public class AlphaBetaPlayer extends DraughtsPlayer {
             s.undoMove(move);
 
             // If this condition holds then we can do pruning
-            if (v >= beta) {
+            if (v > beta) {
                 // break out of the for loop and return v.
                 break;
             }
@@ -102,10 +102,10 @@ public class AlphaBetaPlayer extends DraughtsPlayer {
             s.undoMove(move);
 
             // If this condition holds then we can do pruning
-            if (alpha >= v) {
-                // break out of the for loop and return v.
-                break;
-            }
+//            if (alpha > v) {
+//                // break out of the for loop and return v.
+//                break;
+//            }
 
         }
         
