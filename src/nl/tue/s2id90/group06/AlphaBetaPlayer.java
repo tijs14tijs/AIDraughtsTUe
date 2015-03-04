@@ -26,6 +26,7 @@ public class AlphaBetaPlayer extends DraughtsPlayer {
         if(heuristics == null) {
             heuristics = new HeuristicDeterminator(s);
         }
+        DraughtsState initialState = s.clone();
         
         // Iterative deepening, stops immediately when stop() is called
         try {
@@ -44,9 +45,9 @@ public class AlphaBetaPlayer extends DraughtsPlayer {
         // We can not return null, so picking a random move would be our best shot in this case.
         if(bestMove == null) {
             Random r = new Random();
-            List<Move> moves = s.getMoves();
+            List<Move> moves = initialState.getMoves();
             int i = r.nextInt(moves.size());
-            System.out.println("Random move was the best option...");
+            System.out.println("Random move was the best option: "+i+"/"+moves.size());
             return moves.get(i);
         }
         
