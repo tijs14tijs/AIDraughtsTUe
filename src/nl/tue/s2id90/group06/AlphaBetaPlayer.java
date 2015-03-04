@@ -23,8 +23,6 @@ public class AlphaBetaPlayer extends DraughtsPlayer {
         // Initialize heuristics calculator or just clear its cache if it already exists.
         if(heuristics == null) {
             heuristics = new HeuristicDeterminator(s);
-        }else{
-            heuristics.clearCache();
         }
         
         // Iterative deepening, stops immediately when stop() is called
