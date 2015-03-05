@@ -97,7 +97,7 @@ public class HeuristicDeterminator {
         
         // TIJS: Our heuristic is symmetric (our pieces are worth just as much as their pieces) so you do not need
         // a large if isWhite here. Just do it at the bottom.
-        if (isWhite) {
+        
         // This is where the actual heuristic is calculated. because the situation is slightly different for the white and black
         // player their heuristic is calculated seperately.
         double h = 0;
@@ -111,34 +111,21 @@ public class HeuristicDeterminator {
             //for the kings it is not checked whether they are on the sides of the board or not since they have more movement freedom
             //and their is no real benifit for them to be at the sides.
             h += SQ_LEFT(i) * SQ_RIGHT(i) * ((piece == WHITEPIECE) ? 1 : 0) - SQ_LEFT(i) * SQ_RIGHT(i) * ((piece == BLACKPIECE) ? 1 : 0) + 
-                    ((piece == WHITEKING) ? 5 : 0) - ((piece == BLACKKING) ? 5 : 0) + is_square(i, pieces);
+                    ((piece == WHITEKING) ? 8 : 0) - ((piece == BLACKKING) ? 8 : 0) + 2 * is_square(i, pieces);
             
         }
         
         // TIJS: Does not work: we check non zero constants with 0 :S
         // You want to check this in the loop with a for all constraint. (simply count the black pieces in the loop, use that here)
-        if(BLACKPIECE == 0 & BLACKKING == 0){
-                h = h + 100;
-            }
+        //if(BLACKPIECE == 0 & BLACKKING == 0){
+          //      h = h + 100;
+            //}
 
         
-        
+        if (isWhite) {
             return h;
-        } else {
-            double h = 0;
-        for (int i = 1; i < pieces.length; i++) {
-            int piece = pieces[i];
+        } else
             
-            
-            
-            
-            h += - SQ_LEFT(i) * SQ_RIGHT(i) * ((piece == WHITEPIECE) ? 1 : 0) + SQ_LEFT(i) * SQ_RIGHT(i) * ((piece == BLACKPIECE) ? 1 : 0) -
-                    ((piece == WHITEKING) ? 5 : 0) + ((piece == BLACKKING) ? 5 : 0)+ is_square(i, pieces);
-        }
-        if(WHITEPIECE == 0 & WHITEKING == 0){
-                h = h + 100;
-            }
-            return h;
+            return -h;
         }
     }
-}
