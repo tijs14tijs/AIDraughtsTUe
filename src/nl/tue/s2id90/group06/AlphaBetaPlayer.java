@@ -7,38 +7,39 @@ import nl.tue.s2id90.draughts.player.DraughtsPlayer;
 import org10x10.dam.game.Move;
 
 /**
- *
+ * Implements Alpha Beta search algorithm to compute the best possible draughts move.
  * @authors Jordie Kolkman & Tijs Maas
  */
 public class AlphaBetaPlayer extends DraughtsPlayer {
 
-    private int INF = Integer.MAX_VALUE;
-    // Warning: bestMove may be used with concurrency, use synchonized methods below to access this variable.
+    private final int INF = Integer.MAX_VALUE;
+    private HeuristicDeterminator heuristics;
     private Move bestMove;
     private boolean stopped;
-    private HeuristicDeterminator heuristics;
+    private double last_alpha;
     
     @Override
     public Move getMove(DraughtsState s) {
         bestMove = null;
         stopped = false;
-        // Initialize heuristics calculator or just clear its cache if it already exists.
+        // Initialize heuristics calculator if it does not yet exist
         if(heuristics == null) {
             heuristics = new HeuristicDeterminator(s);
         }
+        // Store our initial state in case something goes wrong
         DraughtsState initialState = s.clone();
         
         // Iterative deepening, stops immediately when stop() is called
         try {
             for (int maxdepth = 7; maxdepth < 30; maxdepth += 1) {
                 // Always start tree with alpha (heuristic adapts to this by being inverted when player is black).
-                double a = Alpha(s, -INF, INF, maxdepth, true);
-                System.out.println("depth:" + maxdepth + ", a:" + a);
+                last_alpha = Alpha(s, -INF, INF, maxdepth, true);
+                System.out.println("G06: Depth:" + maxdepth + ", alpha:" + last_alpha);
             }
-        // Just in case that we get an exception, we want to keep playing.
         } catch(AIStoppedException e) {
-            System.out.println("depth search interrupted");
+            System.out.println("G06: Depth search interrupted");
         } catch(Exception e) {
+            // Catch any error, so that we can still continue playing.
             e.printStackTrace();
         }
         
@@ -47,7 +48,7 @@ public class AlphaBetaPlayer extends DraughtsPlayer {
             Random r = new Random();
             List<Move> moves = initialState.getMoves();
             int i = r.nextInt(moves.size());
-            System.out.println("Random move was the best option: "+i+"/"+moves.size());
+            System.out.println("G06: We were not able to calculate our moves, so we moved at random");
             return moves.get(i);
         }
         
@@ -62,8 +63,8 @@ public class AlphaBetaPlayer extends DraughtsPlayer {
         if(stopped) throw new AIStoppedException();
         
         // This node is a leaf
-        List<Move> children = s.getMoves();
-        if(depth <= 0 || children.isEmpty()) {
+        List<Move> children;
+        if(depth <= 0 || (children = s.getMoves()).isEmpty()) {
             return heuristics.calculateVal(s, depth);
         }
         
@@ -99,8 +100,8 @@ public class AlphaBetaPlayer extends DraughtsPlayer {
     // Minimizing function
     public double Beta(DraughtsState s, double alpha, double beta, int depth) throws AIStoppedException {
         // This node is a leaf
-        List<Move> children = s.getMoves();
-        if(depth <= 0 || children.isEmpty()) {
+        List<Move> children;
+        if(depth <= 0 || (children = s.getMoves()).isEmpty()) {
             return heuristics.calculateVal(s, depth);
         }
         
@@ -128,6 +129,13 @@ public class AlphaBetaPlayer extends DraughtsPlayer {
     public void stop() {
         this.stopped = true;
     }
+
+    @Override
+    public Integer getValue() {
+        return (int) (last_alpha * 10.0);
+    }
+    
+    
     
     private static class AIStoppedException extends Exception {}
 }
