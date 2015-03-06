@@ -17,14 +17,14 @@ public class HeuristicDeterminator {
     public double SQ_LEFT(int c) {
         //checks if a piece is on the left side of the board and multiplies the weight if this is the case.
         return (c % 10 == 6)
-                ? 1.5 : 1;
+                ? 1.15 : 1;
                         
     }
     
     public double SQ_RIGHT(int c) {
         //checks if a piece is on the right side of the board and multiplies the weight if this is the case.
         return (c % 10 == 5)
-                ? 1.5 : 1;
+                ? 1.15 : 1;
                         
     }
     
@@ -33,25 +33,30 @@ public class HeuristicDeterminator {
         // The second statement checks whether the row is odd/even (this matters, because the 'distance' between squares depends on this).
         return (c % 10 == 6 || c <= 5)
                 ? 0 : ((c % 10 >= 1) && (c % 10 <= 5))
-                        ? c - 5 : c - 6; // ODD ROW : EVEN ROW
+                        ? SAFE(c - 5) : SAFE(c - 6); // ODD ROW : EVEN ROW
     }
 
     public int SQ_LEFT_BOTTOM(int c) {
         return (c % 10 == 6 || c > 45)
                 ? 0 : ((c % 10 >= 1) && (c % 10 <= 5))
-                        ? c - 5 : c - 4; // ODD ROW : EVEN ROW
+                        ? SAFE(c - 5) : SAFE(c - 4); // ODD ROW : EVEN ROW
     }
 
     public int SQ_RIGHT_TOP(int c) {
         return (c % 10 == 5 || c <= 5)
                 ? 0 : ((c % 10 >= 1) && (c % 10 <= 5))
-                        ? c - 6 : c - 5; // ODD ROW : EVEN ROW
+                        ? SAFE(c - 6) : SAFE(c - 5); // ODD ROW : EVEN ROW
     }
 
     public int SQ_RIGHT_BOTTOM(int c) {
         return (c % 10 == 5 || c > 45)
                 ? 0 : ((c % 10 >= 1) && (c % 10 <= 5))
-                        ? c + 6 : c + 5; // ODD ROW : EVEN ROW
+                        ? SAFE(c + 6) : SAFE(c + 5); // ODD ROW : EVEN ROW
+    }
+    
+    public int SAFE(int c) {
+        if(c < 0 || c > 51) return 0;
+        return c;
     }
     
    // With c, find rightbelow d, then leftbelow e, then leftabove f. 
@@ -95,31 +100,30 @@ public class HeuristicDeterminator {
     public double calculateVal(DraughtsState s, int depth) {
         int[] pieces = s.getPieces();        
         
-        // TIJS: Our heuristic is symmetric (our pieces are worth just as much as their pieces) so you do not need
-        // a large if isWhite here. Just do it at the bottom.
         
         // This is where the actual heuristic is calculated. because the situation is slightly different for the white and black
         // player their heuristic is calculated seperately.
         double h = 0;
+        int enemypieces = 0;
         for (int i = 1; i < pieces.length; i++) {
             int piece = pieces[i];
             
-            
-             
-            
+            // If we are white, substract 1, giving the white piece of the same category.
+            if (piece == BLACKPIECE + ((isWhite) ? -1 : 0) || piece == BLACKKING + ((isWhite) ? -1 : 0)) {
+                enemypieces++;
+            }
             
             //for the kings it is not checked whether they are on the sides of the board or not since they have more movement freedom
             //and their is no real benifit for them to be at the sides.
-            h += SQ_LEFT(i) * SQ_RIGHT(i) * ((piece == WHITEPIECE) ? 1 : 0) - SQ_LEFT(i) * SQ_RIGHT(i) * ((piece == BLACKPIECE) ? 1 : 0) + 
-                    ((piece == WHITEKING) ? 8 : 0) - ((piece == BLACKKING) ? 8 : 0) + 2 * is_square(i, pieces);
+            h += SQ_LEFT(i) * SQ_RIGHT(i) * ((piece == WHITEPIECE) ? 1.5 : 0) - SQ_LEFT(i) * SQ_RIGHT(i) * ((piece == BLACKPIECE) ? 1 : 0) + 
+                    ((piece == WHITEKING) ? 4 : 0) - ((piece == BLACKKING) ? 5 : 0) + 0.3 * is_square(i, pieces);
             
         }
         
-        // TIJS: Does not work: we check non zero constants with 0 :S
-        // You want to check this in the loop with a for all constraint. (simply count the black pieces in the loop, use that here)
-        //if(BLACKPIECE == 0 & BLACKKING == 0){
-          //      h = h + 100;
-            //}
+        // Victory rush
+        if(enemypieces < 4) {
+            h += 1;
+        }
 
         
         if (isWhite) {
